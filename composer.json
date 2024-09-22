@@ -1,0 +1,23 @@
+{
+  "name": "swoop/server",
+  "description": "The Swoop Server.",
+  "autoload": {
+    "psr-4": {
+      "Swoop\\": "src/"
+    }
+  },
+  "require": {
+    "monolog/monolog": "^3.7",
+    "ext-pcntl": "*"
+  },
+  "minimum-stability": "stable",
+  "prefer-stable": true,
+  "require-dev": {
+    "phpstan/phpstan": "^1.12",
+    "laravel/pint": "^1.17",
+    "squizlabs/php_codesniffer": "^3.10"
+  },
+  "bin": [
+    "swoop"
+  ]
+}

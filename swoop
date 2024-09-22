@@ -1,0 +1,22 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+use Swoop\Server\Application;
+
+require_once __DIR__.'/vendor/autoload.php';
+
+if (isset($argv[1])) {
+    $command = $argv[1];
+    switch ($command) {
+        case 'start':
+            $app = new Application();
+            $app->run($argv);
+            break;
+        case 'clear_cache':
+            break;
+        default:
+            echo "Command `$command` not found. Try `swoop help` to see the available commands.\n";
+    }
+}
