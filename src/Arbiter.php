@@ -9,6 +9,7 @@ use Swoop\Server\Interfaces\ApplicationInterface;
 use Swoop\Sockets\UnixSocket;
 use Swoop\Utils\CommandLineUtils;
 use Swoop\Workers\BaseWorker;
+use Swoop\Workers\Interfaces\WorkerInterface;
 
 class Arbiter
 {
@@ -31,6 +32,10 @@ class Arbiter
     private string $procName;
     private int $pid;
     private array $pipe = [];
+
+    /**
+     * @var WorkerInterface[]
+     */
     private array $workers = [];
     private array $listeners;
 
@@ -92,7 +97,14 @@ class Arbiter
                     $this->sleep();
                     $this->murderWorkers();
                     $this->manageWorkers();
+                    continue;
                 }
+                if (!array_key_exists($sig, $this->signals)) {
+                    $this->log->info("Ignoring unknown signal [{$sig}]");
+                    continue;
+                }
+                $this->log->info("SIGQUEUE");
+                $this->wakeup();
             }
         } catch (\Exception $e) {
             $this->log->error($e->getMessage());
@@ -171,6 +183,10 @@ class Arbiter
 
     public function signal(int $signal): void
     {
+        if ($signal == SIGINT) {
+            $this->murderWorkers();
+            exit($signal);
+        }
         if (count($this->sigQueue) < 5) {
             $this->sigQueue[] = $signal;
             $this->wakeup();
@@ -359,5 +375,20 @@ class Arbiter
         if (!$this->timeout) {
             return;
         }
+        foreach ($this->workers as $pid => $worker) {
+            if (!$worker->isAborted()) {
+                $this->log->critical("WORKER TIMEOUT (pid: {$pid})");
+                $worker->setAborted(true);
+                $this->killWorker($pid, SIGABRT);
+            } else {
+                $this->killWorker($pid, SIGKILL);
+            }
+        }
+    }
+
+    private function killWorker(int|string $pid, int $signal)
+    {
+        exec("kill -$signal $pid");
+        unset($this->workers[$pid]);
     }
 }

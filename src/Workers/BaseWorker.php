@@ -138,4 +138,14 @@ abstract class BaseWorker implements WorkerInterface
     {
         return "<Worker {$this->pid}>";
     }
+
+    public function isAborted(): bool
+    {
+        return $this->aborted;
+    }
+
+    public function setAborted(bool $value): void
+    {
+        $this->aborted = $value;
+    }
 }

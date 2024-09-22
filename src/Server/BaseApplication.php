@@ -27,7 +27,7 @@ abstract class BaseApplication implements ApplicationInterface
         $this->config->numWorkers = 24;
         $this->config->workerClass = SyncWorker::class;
         $this->config->address = 'localhost';
-        $this->config->timeout = 60;
+        $this->config->timeout = 0;
         $this->config->procName = 'threaded_worker';
     }
 

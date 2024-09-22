@@ -37,13 +37,16 @@ final class SyncWorker extends BaseWorker
         while ($this->alive) {
             // $this->notify();
             $this->accept($listener, $timeout);
-            sleep(0.1);
+
+            if (!$this->isParentAlive()) {
+                return;
+            }
         }
     }
 
     private function accept(mixed $listener, int $timeout): void
     {
-        $client = @stream_socket_accept($listener, $timeout, $peer);
+        $client = @stream_socket_accept($listener, -1, $peer);
         if ($client) {
             stream_set_blocking($client, true);
             $this->handle($listener, $client, $peer);
@@ -52,7 +55,7 @@ final class SyncWorker extends BaseWorker
 
     private function handle(mixed $listener, mixed $client, string $peer)
     {
-        fwrite($client, self::generateResponse("OK"));
+        fwrite($client, self::generateResponse('OK'));
         fclose($client);
     }
 
@@ -60,8 +63,10 @@ final class SyncWorker extends BaseWorker
     {
         if ($this->ppid != $this->getOSPPID()) {
             $this->getLogger()->info("Parent changed [{$this->ppid}], shutting down ".$this);
+
             return false;
         }
+
         return true;
     }
 
